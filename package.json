@@ -1,0 +1,19 @@
+{
+  "name": "ei-calendar",
+  "version": "1.0.0",
+  "description": "小程序日历组件",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "webapp",
+    "components",
+    "uniapp",
+    "calendar"
+  ],
+  "author": "goei3524@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+  }
+}
