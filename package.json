@@ -12,6 +12,10 @@
     "uniapp",
     "calendar"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:eicoder/ei-calendar.git"
+  },
   "author": "goei3524@gmail.com",
   "license": "ISC",
   "dependencies": {
