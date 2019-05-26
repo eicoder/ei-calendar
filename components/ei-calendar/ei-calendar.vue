@@ -131,6 +131,7 @@ export default {
         this.initValue();
       } else {
         this.watchTimer = setTimeout(() => {
+          this.showMonthList = [];
           this.visibleSync = val
         }, 300)
       }
