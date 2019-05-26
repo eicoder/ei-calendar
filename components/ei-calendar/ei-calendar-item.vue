@@ -1,7 +1,7 @@
 <template>
   <view class="ei-calendar-item"
         :class="[
-          { 'ei-calendar-item--disabled': day.isAllDisabled || day.isDisabled },
+          { 'ei-calendar-item--disabled': day.isDisabled },
           { 'ei-calendar-item--virtual': day.virtual },
           { 'ei-calendar-item--today': day.isToday },
           { 'ei-calendar-item--single-selected': selected === 'single' },
@@ -24,6 +24,8 @@
 </template>
 
 <script>
+import EDate from './EDate';
+
 export default {
   name: 'ei-calendar-item',
   props: {
@@ -36,7 +38,7 @@ export default {
       default: () => ({})
     },
     type: String,
-    selectedValue: String,
+    selectedValue: [String, Number],
     selection: {
       type: Array,
       default: () => []
@@ -46,9 +48,9 @@ export default {
     selected() {
       const time = this.day.time;
       if ('single' === this.type) {
-        return time === new Date(this.selectedValue).getTime() ? 'single' : false;
+        return time === this.selectedValue ? 'single' : false;
       }
-      const index = this.selection.findIndex(item => new Date(item).getTime() === time);
+      const index = this.selection.findIndex(item => item === time);
       if (this.type === 'multiple') {
         return index < 0 ? false : 'single';
       }
@@ -59,7 +61,7 @@ export default {
       if (index === lastIndex ) {
         return 'last';
       }
-      return time >= new Date(this.selection[0]) && time <= new Date(this.selection[lastIndex]) ? 'range' : false;
+      return time >= this.selection[0] && time <= this.selection[lastIndex] ? 'range' : false;
     },
     customDate() {
       return this.day.customDate || {};
@@ -77,8 +79,7 @@ export default {
   methods: {
     onDayClick() {
       const day = this.day;
-      if (day.isAllDisabled || day.isDisabled || day.virtual) return;
-      this.$emit('click', day);
+      this.$emit('click', day, day.isDisabled, day.virtual);
     }
   },
 };
@@ -86,6 +87,7 @@ export default {
 
 <style scoped lang="scss">
   @import "../../uni";
+  $color-primary: #1890ff;
   .ei-calendar-item{
     display: flex;
     flex-direction: column;
@@ -93,21 +95,22 @@ export default {
     align-items: center;
     line-height: 1.2 * $uni-font-size-base;
     box-sizing: border-box;
-    padding: 10upx;
     width: 100%;
+    padding: 1upx;
+    color: $uni-text-color;
     &--disabled {
       opacity: 0.3;
     }
     &--today {
-      color: $uni-color-warning;
+      color: rgba(253, 46, 50, .7);
     }
     &--single-selected {
-      background: $uni-color-primary;
+      background: $color-primary;
       color: #fff;
       border-radius: $uni-border-radius-base;
     }
     &--range-selected {
-      background: mix(#fff, $uni-color-primary, 80%);
+      background: mix(#fff, $color-primary, 80%);
       color: #fff;
       opacity: 0.8;
       &.ei-calendar-item--virtual {
@@ -115,7 +118,7 @@ export default {
       }
     }
     &--first-selected {
-      background: $uni-color-primary;
+      background: $color-primary;
       color: #fff;
       border-top-left-radius: $uni-border-radius-base;
       border-bottom-left-radius: $uni-border-radius-base;
@@ -125,7 +128,7 @@ export default {
       }
     }
     &--last-selected {
-      background: $uni-color-primary;
+      background: $color-primary;
       color: #fff;
       border-top-right-radius: $uni-border-radius-base;
       border-bottom-right-radius: $uni-border-radius-base;
@@ -148,7 +151,7 @@ export default {
         width: 10upx;
         height: 10upx;
         border-radius: $uni-border-radius-circle;
-        background: $uni-color-error;
+        background: rgba(253, 46, 50, .7);
       }
     }
     &__center {

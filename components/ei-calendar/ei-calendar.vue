@@ -1,13 +1,25 @@
 <template>
-  <view v-if="visibleSync" class="ei-calendar" :class="{ 'is-active': active}">
-    <view class="ei-calendar__mask" @tap="close"></view>
+  <view v-if="visibleSync" class="ei-calendar" :class="{ 'ei-calendar--drawer': drawer, 'is-active': active}">
+    <view class="ei-calendar__mask" @tap="close" v-if="drawer"></view>
     <view class="ei-calendar__container">
       <view class="ei-calendar__container__header">
         <view class="ei-calendar__container__header__row">
-          <view class="ei-calendar__container__header__cancel" @click="close">取消</view>
+          <view class="ei-calendar__container__header__cancel" @click="close" v-if="drawer">取消</view>
           <view class="ei-calendar__container__header__title">{{title}}</view>
         </view>
-        <view class="ei-calendar__container__header__date">{{currentDate}}</view>
+        <view class="ei-calendar__container__header__date">
+          <view class="ei-calendar__container__header__date__edge"></view>
+          <view class="ei-calendar__container__header__date__btn" hover-class="is-hover" :hover-start-time="20" :hover-stay-time="70" @click="toYear(-1)">
+            <view class="ei ei-d-left"></view>
+          </view>
+          <view class="ei-calendar__container__header__date__show">
+            {{currentDateShow}}
+          </view>
+          <view class="ei-calendar__container__header__date__btn" hover-class="is-hover" :hover-start-time="20" :hover-stay-time="70" @click="toYear(1)">
+            <view class="ei ei-d-right"></view>
+          </view>
+          <view class="ei-calendar__container__header__date__edge today" hover-class="is-hover" :hover-start-time="20" :hover-stay-time="70" @click="toYear(0)">今天</view>
+        </view>
         <view class="ei-calendar__container__header__week">
           <view class="ei-calendar__container__header__week__day" v-for="(day,index) in week" :key="index">
             {{day}}
@@ -18,7 +30,7 @@
         <swiper-item class="ei-calendar__container__content__item" v-for="(item, itemIndex) in showMonthList" :key="itemIndex">
           <view class="ei-calendar__container__content__item__bg">{{item.month}}</view>
           <view v-for="(row, index) in item.days" :key="index" class="ei-calendar__container__content__item__row">
-            <view class="ei-calendar__container__content__item__col" v-for="day in row" :key="day.format">
+            <view class="ei-calendar__container__content__item__col" :class="{ 'is-range': type === 'range' }" v-for="day in row" :key="day.format">
               <ei-calendar-item :day="day"
                                 :cell-class="cellClass"
                                 :type="type"
@@ -30,7 +42,7 @@
           </view>
         </swiper-item>
       </swiper>
-      <view class="ei-calendar__container__footer">
+      <view class="ei-calendar__container__footer" v-if="!disabled">
         <button class="ei-calendar__container__footer__btn" type="primary" @click="doSubmit">确定</button>
       </view>
     </view>
@@ -38,8 +50,8 @@
 </template>
 
 <script>
-import { parseTime, preYearMonth, nextYearMonth } from './utils';
 import EiCalendarItem from './ei-calendar-item';
+import EDate from './EDate';
 
 const CustomDate = {};
 
@@ -78,6 +90,10 @@ export default {
     title: {
       type: String,
       default: '请选择日期'
+    },
+    drawer: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -96,6 +112,11 @@ export default {
       duration: 200
     };
   },
+  computed: {
+    currentDateShow() {
+      return this.currentDate ? `${this.currentDate.replace('/', '年')}月` : '';
+    }
+  },
   watch: {
     visible(val) {
       clearTimeout(this.watchTimer);
@@ -106,7 +127,8 @@ export default {
         clearTimeout(this.closeTimer)
       }
       if (val) {
-        this.visibleSync = val
+        this.visibleSync = val;
+        this.initValue();
       } else {
         this.watchTimer = setTimeout(() => {
           this.visibleSync = val
@@ -116,11 +138,13 @@ export default {
   },
   created() {
     this.initVisible();
-    this.initValue();
   },
   methods: {
     initVisible() {
       this.visibleSync = this.visible;
+      if (this.visible) {
+        this.initValue();
+      }
       setTimeout(() => {
         this.active = this.visible;
       }, 100);
@@ -130,7 +154,8 @@ export default {
         this.customDate.forEach((item) => {
           const date = typeof item === 'string' ? item : item.date;
           if (date) {
-            CustomDate[date] = typeof item === 'string' ? {
+            const format = new EDate([date]).format('YYYY/MM/DD');
+            CustomDate[format] = typeof item === 'string' ? {
               date,
               top: [{}]
             } :item;
@@ -138,24 +163,25 @@ export default {
         });
       }
       if (this.type === 'single') {
-        this.selectedValue = this.value ? new Date(this.value) : new Date(parseTime(new Date(), 'YYYY-MM-DD'));
-        this.currentDate = parseTime(this.selectedValue, 'YYYY-MM');
+        const selectedValue = new EDate([this.value], 'YYYY/MM/DD');
+        this.selectedValue = selectedValue.getTime();
+        this.currentDate = selectedValue.format('YYYY/MM');
       } else {
         const valueList = this.value || [];
         const selection = [];
         valueList.forEach((item) => {
-          selection.push(new Date(item));
+          selection.push(new EDate([item], 'YYYY/MM/DD').getTime());
         });
-        this.selection = selection.sort((a, b) => a.getTime() > b.getTime());
-        this.currentDate = parseTime(this.selection[0] || new Date(parseTime(new Date(), 'YYYY-MM-DD')), 'YYYY-MM-DD');
+        this.selection = selection.sort();
+        this.currentDate = EDate.format(this.selection[0], 'YYYY/MM') || new EDate([], 'YYYY/MM').format('YYYY/MM');
       }
       this.setShowMonthList(1);
     },
     setShowMonthList(index) {
       if (!this.currentDate) return;
       const currentDate = this.currentDate;
-      const beforeDate = preYearMonth(currentDate);
-      const afterDate = nextYearMonth(currentDate);
+      const beforeDate = EDate.modify(this.currentDate, { m: -1 }).format('YYYY/MM');
+      const afterDate = EDate.modify(this.currentDate, { m: +1 }).format('YYYY/MM');
       if (!this.showMonthList.length) {
         const before = this.getMonthDays(beforeDate);
         const current = this.getMonthDays(currentDate);
@@ -187,7 +213,7 @@ export default {
       this.setShowMonthList(index);
     },
     getMonthDays(dateStr) { // 获取该年月的日期信息
-      const [year, showMonth] = dateStr.split('-');
+      const [year, showMonth] = dateStr.split('/');
       const month = showMonth - 1;
       const firstDayOfMonth = new Date(year, month, 1).getDay();         //当月第一天是周几
       const lastDateOfMonth = new Date(year, month + 1, 0).getDate();    //当月最后一天是几号
@@ -255,13 +281,13 @@ export default {
       };
     },
     getDayOption({ year, month, day, virtual, isToday }) {
-      const format = `${year}-${(month + 1 + '').padStart(2, 0)}-${(day + '').padStart(2, 0)}`;
-      const date = new Date(format);
+      const date = new EDate([year, month, day], 'YYYY/MM/DD');
+      const format = date.format();
       const time = date.getTime();
       let isDisabled = virtual;
       if (!virtual) {
         if (typeof this.disabledDate === 'function') {
-          isDisabled = this.disabledDate(date);
+          isDisabled = this.disabledDate.call(this.$parent, date);
         } else {
           isDisabled = this.disabledDate.includes(format);
         }
@@ -269,7 +295,6 @@ export default {
       // 获取自定义日期
       const customDate = this.getCustomDate(format);
       return {
-        isAllDisabled: this.display, // 组件禁用
         isDisabled, // 日期禁用
         // isSelected, // 选中日期
         year,
@@ -289,15 +314,17 @@ export default {
       }
       return CustomDate[dateStr] || {};
     },
-    onDayClick(day) {
+    onDayClick(day, isDisabled, virtual) {
+      this.$emit('click', day);
+      if (isDisabled || virtual || this.disabled) return;
       if (this.type === 'single') {
-        this.selectedValue = new Date(day.format);
+        this.selectedValue = day.time;
         this.$emit('change', this.getResultValue());
         return;
       }
       if (this.type === 'multiple') {
-        const value = new Date(day.format);
-        const index = this.selection.findIndex(item => item.getTime() === value.getTime());
+        const value = day.time;
+        const index = this.selection.findIndex(item => item === value);
         if (index < 0) {
           this.selection.push(value);
         } else {
@@ -306,26 +333,24 @@ export default {
         this.$emit('change', this.getResultValue());
         return;
       }
-      const value = new Date(day.format);
-      const time = value.getTime();
       if (!this.selection.length) {
-        this.selection.push(value);
+        this.selection.push(day.time);
       } else if (this.selection.length === 1) {
-        const firstTime = this.selection[0].getTime();
-        if (time !== firstTime) {
-          const method = time > firstTime ? 'push' : 'unshift';
-          this.selection[method](value);
+        const firstTime = this.selection[0];
+        if (day.time !== firstTime) {
+          const method = day.time > firstTime ? 'push' : 'unshift';
+          this.selection[method](day.time);
         }
       } else {
-        this.selection = [value];
+        this.selection = [day.time];
       }
       this.$emit('change', this.getResultValue());
     },
     getResultValue() {
       if (this.type === 'single') {
-        return this.format && this.selectedValue ? parseTime(this.selectedValue, this.format) : this.selectedValue;
+        return this.format && this.selectedValue ? EDate.format(this.selectedValue, this.format) : new Date(this.selectedValue);
       } else {
-        return this.format ? this.selection.map(item => parseTime(item, this.format)) : this.selection;
+        return this.format ? this.selection.map(item => EDate.format(item, this.format)) : this.selection.map(item => new Date(item));
       }
     },
     doSubmit() {
@@ -333,6 +358,18 @@ export default {
       this.$emit('input', value);
       this.$emit('submit', value);
       this.close();
+    },
+    toYear(year) {
+      if (!this.currentDate) return;
+      if (year === 0) {
+        const currentDate = new EDate().format('YYYY/MM');
+        if (currentDate === this.currentDate) return;
+        this.currentDate = currentDate;
+        this.setShowMonthList(this.currentIndex);
+      } else {
+        this.currentDate = EDate.modify(this.currentDate, { y: year }).format('YYYY/MM');
+        this.setShowMonthList(this.currentIndex);
+      }
     }
   }
 };
@@ -343,43 +380,50 @@ export default {
 
 <style scoped lang="scss">
   @import "../../uni";
+  @import "icon.css";
   .ei-calendar{
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    overflow: hidden;
-    z-index: 998;
-    visibility: hidden;
-    &.is-active {
-      visibility: visible;
-      .ei-calendar__mask {
-        opacity: 1;
-      }
-      .ei-calendar__container {
-        transform: translateY(0);
-      }
-    }
-    &__mask { // 遮罩层
-      opacity: 0;
-      position: absolute;
+    color: $uni-text-color;
+    &--drawer {
+      position: fixed;
+      top: 0;
       bottom: 0;
-      width: 100%;
-      height: 100%;
-      background: $uni-bg-color-mask;
-      transition: opacity 0.3s;
+      right: 0;
+      left: 0;
+      overflow: hidden;
+      z-index: 998;
+      visibility: hidden;
+      &.is-active {
+        visibility: visible;
+        .ei-calendar__mask {
+          opacity: 1;
+        }
+        .ei-calendar__container {
+          transform: translateY(0);
+        }
+      }
+      .ei-calendar__mask { // 遮罩层
+        opacity: 0;
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background: $uni-bg-color-mask;
+        transition: opacity 0.3s;
+      }
+      .ei-calendar__container { // 日历
+        position: absolute;
+        transform: translateY(100%);
+        bottom: 0;
+        transition: all 0.3s ease-in;
+      }
     }
+
     &__container { // 日历
-      position: absolute;
       box-sizing: border-box;
-      transform: translateY(100%);
       width: 100%;
-      bottom: 0;
       background: #fff;
       border-top-left-radius: $uni-border-radius-lg;
       border-top-right-radius: $uni-border-radius-lg;
-      transition: all 0.3s ease-in;
       &__header { // 头部
         display: flex;
         justify-content: center;
@@ -387,22 +431,51 @@ export default {
         align-items: center;
         position: relative;
         box-shadow: 0 2upx 5upx $uni-bg-color-hover;
-        padding: 20upx;
+        line-height: 1.5;
         &__row {
           width: 100%;
         }
         &__title { // 标题
-          margin: 0 70upx;
+          margin: 20upx 70upx;
           text-align: center;
         }
         &__cancel { // 取消按钮
           float: right;
           font-size: 24upx;
           color: $uni-text-color-grey;
+          margin: 20upx 10upx;
         }
         &__date { // 表头日期
-          margin: 30upx 0;
+          margin-bottom: 20upx;
           font-weight: 700;
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          &__show {}
+          &__btn {
+            font-size: 32upx;
+            padding: 0 50upx;
+            &.is-hover {
+              color: #bbb;
+            }
+          }
+          &__edge {
+            width: 84upx;
+            &.today {
+              border: 1px rgba(253, 46, 50, .5) solid;
+              border-right: 0;
+              font-size: 24upx;
+              border-top-left-radius: 50rpx;
+              border-bottom-left-radius: 50rpx;
+              color: rgba(253, 46, 50, .7);
+              background: rgba(241, 233, 233, .4);
+              text-align: center;
+              &.is-hover {
+                color: rgba(253, 46, 50, .5);
+              }
+            }
+          }
         }
         &__week {
           display: flex;
@@ -418,7 +491,7 @@ export default {
       }
       &__content {
         padding: 20upx;
-        height: 707upx;
+        height: 650upx;
         box-sizing: border-box;
         &__item {
           box-sizing: border-box;
@@ -445,6 +518,10 @@ export default {
           }
           &__col {
             width: percentage(100 / 7);
+            margin: 1upx;
+            &.is-range {
+              margin: 1upx 0;
+            }
           }
         }
       }

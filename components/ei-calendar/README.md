@@ -25,11 +25,12 @@
 | visible         | 是否显示日历                                                 | boolean                                        | —                                          | false      |
 | type            | 日历类型                                                     | string                                         | range（范围）/multiple（多选)/single(单选) | single     |
 | value / v-model | 绑定值                                                       | date/string(single)<br />array(range/multiple) | —                                          | —          |
-| disabled        | 禁用                                                         | boolean                                        | —                                          | false      |
+| disabled        | 禁用（不显示确定按钮）                                       | boolean                                        | —                                          | false      |
 | disabledDate    | 设置禁用日期<br />参数为当前日期，要求返回 Boolean（function） | array/function                                 | —                                          | —          |
 | customDate      | 设置自定义选中的日期，每个选中值的数据可为string（默认样式为右上角红色的点）或object，object方式，可为选中的日期添加自定义的文本跟样式，object属性具体参考下表（function的话只能返回object[]，参数为当前日期） | array/function                                 | —                                          | —          |
 | format          | 返回日期格式，如果为空范围date                               | string                                         | YYYY/MM/DD/hh/mm/ss/a组合                  | —          |
-| title           | 标题                                                         |                                                | ——                                         | 请选择日期 |
+| title           | 标题                                                         |                                                | —                                          | 请选择日期 |
+| drawer          | 是否弹出层弹出                                               | boolean                                        | —                                          | true       |
 
 ### selectedDate
 
@@ -63,11 +64,12 @@ const customDate = [
 
 ### ei-calendar Events
 
-| 事件名称 | 说明               | 回调参数 |
-| -------- | ------------------ | -------- |
-| change   | 选中值改变时候触发 | 选中的值 |
-| close    | 关闭后触发         | —        |
-| submit   | 点确定是触发       | 选中的值 |
+| 事件名称 | 说明               | 回调参数                                                     |
+| -------- | ------------------ | ------------------------------------------------------------ |
+| change   | 选中值改变时候触发 | 选中的值                                                     |
+| close    | 关闭后触发         | —                                                            |
+| submit   | 点确定是触发       | 选中的值                                                     |
+| click    | 单元格点击事件     | 选中单元格的数据`{ isDisabled: '是否禁用', year, month, day, date, time, format, virtual: '是否是虚拟日期（上下个月的日期)', isToday, customDate: '自定义日期数据'}` |
 
 ## demo
 

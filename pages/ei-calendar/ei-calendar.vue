@@ -3,7 +3,7 @@
     date:
     <view v-for="(item, index) in date" :key="index">{{item}}</view>
     <button @click="show = true">click</button>
-		<ei-calendar :visible.sync="show" type="range" :disabledDate="disabledDate" v-model="date" :custom-date="customDate" format="YYYY-MM-DD">
+		<ei-calendar :disabled="false" title="我是一个很长很长很长灰常长的名字，我还不够长我继续很长很长很长" :visible.sync="show" type="multiple" :disabledDate="disabledDate" v-model="date" :custom-date="customDate" format="YYYY-MM-DD">
     </ei-calendar>
 	</view>
 </template>
@@ -16,7 +16,7 @@
     data() {
 			return {
 			  show: true,
-        date: ['2019-05-12'],
+        date: [new Date('2019-05-12')],
         customDate: [{
           cellClass: 'custom-cell',
           date: '2019-05-23',
@@ -36,7 +36,7 @@
 		methods: {
       disabledDate(date) {
         const start = new Date('2019/5/10').getTime();
-        const end = new Date('2019/6/21').getTime();
+        const end = new Date('2019/7/21').getTime();
         return date.getTime() <= start || date.getTime() >= end;
       }
 		}
@@ -53,7 +53,7 @@
     color: #4cd964;
   }
   .custom-cell-top-1 {
-    color: #007aff;
+    color: #ccc;
   }
   .custom-cell-top-2 {
     color: red;
