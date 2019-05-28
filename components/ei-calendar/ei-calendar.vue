@@ -175,15 +175,15 @@ export default {
           selection.push(new EDate([item], 'YYYY/MM/DD').getTime());
         });
         this.selection = selection.sort();
-        this.currentDate = EDate.format(this.selection[0], 'YYYY/MM') || new EDate([], 'YYYY/MM').format('YYYY/MM');
+        this.currentDate = EDate.format(this.selection[0], 'YYYY/MM') || new EDate().format('YYYY/MM');
       }
       this.setShowMonthList(1);
     },
     setShowMonthList(index) {
       if (!this.currentDate) return;
       const currentDate = this.currentDate;
-      const beforeDate = EDate.modify(this.currentDate, { m: -1 }).format('YYYY/MM');
-      const afterDate = EDate.modify(this.currentDate, { m: +1 }).format('YYYY/MM');
+      const beforeDate = EDate.modify(`${this.currentDate}/01`, { m: -1 }).format('YYYY/MM'); // ios 预览下 new Date('2019/02')返回null
+      const afterDate = EDate.modify(`${this.currentDate}/01`, { m: +1 }).format('YYYY/MM');
       if (!this.showMonthList.length) {
         const before = this.getMonthDays(beforeDate);
         const current = this.getMonthDays(currentDate);

@@ -7,7 +7,6 @@ function replaceFormat(format) {
 function Format(date, format = 'YYYY/MM/DD') {
   if (!date) return null;
   if (typeof date !== 'object') {
-    if (('' + date).length === 10) date = parseInt(date) * 1000;
     date = new EDate([date]);
   }
   const formatObj = {
@@ -32,7 +31,6 @@ function Format(date, format = 'YYYY/MM/DD') {
 function Modify(date, { y, m, d }) {
   if (!date) return;
   if (typeof date !== 'object') {
-    if (('' + date).length === 10) date = parseInt(date) * 1000;
     date = new EDate([date]);
   }
   if (d) {
