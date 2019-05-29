@@ -3,7 +3,7 @@
     date:
     <view v-for="(item, index) in date" :key="index">{{item}}</view>
     <button @click="show = true">click</button>
-		<ei-calendar :disabled="false" title="我是一个很长很长很长灰常长的名字，我还不够长我继续很长很长很长" :visible.sync="show" type="multiple" :disabledDate="disabledDate" v-model="date" :custom-date="customDate" format="YYYY-MM-DD">
+		<ei-calendar :disabled="false" title="计划周期" :visible.sync="show" type="multiple" :disabledDate="disabledDate" v-model="date" :custom-date="customDate" format="YYYY-MM-DD">
     </ei-calendar>
 	</view>
 </template>
