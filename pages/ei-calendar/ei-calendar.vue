@@ -1,9 +1,10 @@
 <template>
 	<view class="page">
+    <button @click="changeCustomData">changeCustomData</button>
     date:
     <view v-for="(item, index) in date" :key="index">{{item}}</view>
     <button @click="show = true">click</button>
-		<ei-calendar :disabled="false" title="计划周期" :visible.sync="show" type="multiple" :disabledDate="disabledDate" v-model="date" :custom-date="customDate" format="YYYY-MM-DD">
+		<ei-calendar ref="calendar" :drawer="false" :disabled="false" title="范围弹出层" @date-change="change" :visible.sync="show" type="range" :disabledDate="disabledDate" v-model="date" :custom-date="customDate" format="YYYY-MM-DD">
     </ei-calendar>
 	</view>
 </template>
@@ -17,7 +18,31 @@
 			return {
 			  show: true,
         date: [new Date('2019-05-12')],
-        customDate: [{
+        customDate: [
+          {
+            cellClass: 'custom-cell',
+            date: '2019-05-24',
+            top: [
+              {
+                class: 'custom-cell-top-1',
+                text: '②'
+              },
+              {
+                class: 'custom-cell-top-2',
+                text: '√'
+              }
+            ]
+          }]
+			}
+		},
+		methods: {
+      disabledDate(date) {
+        const start = new Date('2019/5/10').getTime();
+        const end = new Date('2019/7/21').getTime();
+        return date.getTime() <= start || date.getTime() >= end;
+      },
+      changeCustomData() {
+        this.customDate = [{
           cellClass: 'custom-cell',
           date: '2019-05-23',
           top: [
@@ -30,14 +55,11 @@
               text: '×'
             }
           ]
-        }]
-			}
-		},
-		methods: {
-      disabledDate(date) {
-        const start = new Date('2019/5/10').getTime();
-        const end = new Date('2019/7/21').getTime();
-        return date.getTime() <= start || date.getTime() >= end;
+        }];
+        this.$refs.calendar.refresh();
+      },
+      change(a, b) {
+        debugger;
       }
 		}
 	}

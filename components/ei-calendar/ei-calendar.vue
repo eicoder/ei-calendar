@@ -53,7 +53,7 @@
 import EiCalendarItem from './ei-calendar-item';
 import EDate from './EDate';
 
-const CustomDate = {};
+let CustomDate = {};
 
 export default {
   name: 'ei-calendar',
@@ -151,8 +151,9 @@ export default {
         this.active = this.visible;
       }, 100);
     },
-    initValue() {
+    initCustomData() {
       if (Array.isArray(this.customDate)) {
+        CustomDate = {};
         this.customDate.forEach((item) => {
           const date = typeof item === 'string' ? item : item.date;
           if (date) {
@@ -164,6 +165,9 @@ export default {
           }
         });
       }
+    },
+    initValue() {
+      this.initCustomData();
       if (this.type === 'single') {
         const selectedValue = new EDate([this.value], 'YYYY/MM/DD');
         this.selectedValue = selectedValue.getTime();
@@ -179,12 +183,12 @@ export default {
       }
       this.setShowMonthList(1);
     },
-    setShowMonthList(index) {
+    setShowMonthList(index, refresh) {
       if (!this.currentDate) return;
       const currentDate = this.currentDate;
       const beforeDate = EDate.modify(`${this.currentDate}/01`, { m: -1 }).format('YYYY/MM'); // ios 预览下 new Date('2019/02')返回null
       const afterDate = EDate.modify(`${this.currentDate}/01`, { m: +1 }).format('YYYY/MM');
-      if (!this.showMonthList.length) {
+      if (!this.showMonthList.length || refresh) {
         const before = this.getMonthDays(beforeDate);
         const current = this.getMonthDays(currentDate);
         const after = this.getMonthDays(afterDate);
@@ -209,10 +213,12 @@ export default {
       }, 200)
     },
     animationfinish(e) {
+      const oldDate = this.currentDate;
       const index = e.detail.current;
       this.currentIndex = index;
       this.currentDate = this.showMonthList[index].id;
       this.setShowMonthList(index);
+      this.$emit('date-change', this.currentDate, oldDate);
     },
     getMonthDays(dateStr) { // 获取该年月的日期信息
       const [year, showMonth] = dateStr.split('/');
@@ -361,8 +367,15 @@ export default {
       this.$emit('submit', value);
       this.close();
     },
+    refresh() {
+      this.$nextTick(() => {
+        this.initCustomData();
+        this.setShowMonthList(this.currentIndex, true);
+      });
+    },
     toYear(year) {
       if (!this.currentDate) return;
+      let oldDate = this.currentDate;
       if (year === 0) {
         const currentDate = new EDate().format('YYYY/MM');
         if (currentDate === this.currentDate) return;
@@ -372,6 +385,7 @@ export default {
         this.currentDate = EDate.modify(this.currentDate, { y: year }).format('YYYY/MM');
         this.setShowMonthList(this.currentIndex);
       }
+      this.$emit('date-change', this.currentDate, oldDate);
     }
   }
 };

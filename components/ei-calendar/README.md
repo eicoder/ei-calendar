@@ -1,4 +1,4 @@
-# ei-calendar
+# ei-calendar(v1.0.1)
 
 ## 组件功能
 
@@ -60,16 +60,25 @@ const customDate = [
 ]
 ```
 
+### ei-calendar Methods
 
+| 方法名  | 说明                                       | 参数 |
+| ------- | ------------------------------------------ | ---- |
+| refresh | 更新customDate并重新计算当前显示月份的数据 | —    |
+
+> 通过ref调用 `this.$refs.calendar.refresh();`
+>
+> 需要动态修改customDate的话，`drawer = trure`弹出层模式下，每次打开都会重新计算，所以不需要做什么修改，非弹出层模式下，调用`this.$refs.calendar.refresh();`进行刷新
 
 ### ei-calendar Events
 
-| 事件名称 | 说明               | 回调参数                                                     |
-| -------- | ------------------ | ------------------------------------------------------------ |
-| change   | 选中值改变时候触发 | 选中的值                                                     |
-| close    | 关闭后触发         | —                                                            |
-| submit   | 点确定是触发       | 选中的值                                                     |
-| click    | 单元格点击事件     | 选中单元格的数据`{ isDisabled: '是否禁用', year, month, day, date, time, format, virtual: '是否是虚拟日期（上下个月的日期)', isToday, customDate: '自定义日期数据'}` |
+| 事件名称    | 说明                           | 回调参数                                                     |
+| ----------- | ------------------------------ | ------------------------------------------------------------ |
+| change      | 选中值改变时候触发             | 选中的值                                                     |
+| close       | 关闭后触发                     | —                                                            |
+| submit      | 点确定是触发                   | 选中的值                                                     |
+| click       | 单元格点击事件                 | 选中单元格的数据`{ isDisabled: '是否禁用', year, month, day, date, time, format, virtual: '是否是虚拟日期（上下个月的日期)', isToday, customDate: '自定义日期数据'}` |
+| date-change | 日历当前显示的年月变化时候触发 | nowDate(当前年月), oldDate(改变之前的年月) 格式为`YYYY/MM`   |
 
 ## demo
 
